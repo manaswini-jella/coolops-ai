@@ -3,66 +3,170 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CoolOps AI: Connectivity Test</title>
+  <title>CoolOps AI: Cooling Investigation Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
-    h1 { font-size: 1.4rem; }
-    button { padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; }
-    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; white-space: pre-wrap; word-break: break-word; }
-    .status { margin-top: 1rem; font-style: italic; color: #555; }
+    body { font-family: system-ui, sans-serif; max-width: 1000px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .badge { display: inline-block; background: #fff3cd; color: #664d03; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+    .note { color: #555; font-size: 0.9rem; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 6px; border-bottom: 1px solid #eee; vertical-align: top; }
+    .muted { color: #777; }
     .error { color: #b00020; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; }
+    .metric b { display: block; font-size: 1.2rem; }
+    code { background: #f4f4f4; padding: 1px 4px; border-radius: 3px; }
   </style>
 </head>
 <body>
-  <h1>CoolOps AI: Connectivity Test</h1>
-  <p>Synthetic demo only. Checks that this page can reach the backend, Gemini, and Firestore.</p>
+  <h1>CoolOps AI</h1>
+  <p><span class="badge">SYNTHETIC DATA</span>
+     <span class="note">Flags show patterns to investigate. They are not proof of a fault or wasted energy.</span></p>
 
-  <button id="run">Run checks</button>
-  <p class="status" id="status"></p>
+  <div class="card">
+    <h2>Cooling power vs IT load</h2>
+    <p class="muted" id="chart-status">Loading telemetry...</p>
+    <canvas id="chart" height="110"></canvas>
+  </div>
 
-  <h2>Health</h2>
-  <pre id="health">Not run yet.</pre>
+  <div class="card">
+    <h2>Flagged intervals</h2>
+    <p class="muted" id="flags-status">Loading analysis...</p>
+    <table id="flags" hidden>
+      <thead><tr><th>Rule</th><th>Time range</th><th>Evidence</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-  <h2>Firestore write and read</h2>
-  <pre id="firestore">Not run yet.</pre>
-
-  <h2>Gemini</h2>
-  <pre id="gemini">Not run yet.</pre>
+  <div class="card">
+    <h2>Cost estimate (R1 window)</h2>
+    <p class="muted" id="cost-status">Loading...</p>
+    <div class="metrics" id="cost" hidden></div>
+    <p class="note" id="cost-note" hidden></p>
+  </div>
 
   <script>
-    async function check(path, outputId) {
-      const out = document.getElementById(outputId);
-      out.className = "";
-      out.textContent = "Loading...";
+    // Every value is written with textContent, never innerHTML, so API data cannot inject markup.
+    function el(id) { return document.getElementById(id); }
+
+    function setStatus(id, text, isError) {
+      const node = el(id);
+      node.textContent = text;
+      node.className = isError ? "error" : "muted";
+    }
+
+    function fmt(ts) {
+      return new Date(ts).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    }
+
+    function renderChart(points, r1) {
+      const labels = points.map(p => fmt(p.t));
+      const inWindow = points.map(p => r1 && p.t >= r1.start && p.t < r1.end);
+      new Chart(el("chart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            { label: "Cooling power (kW)", data: points.map(p => p.cooling_kw), borderColor: "#c0392b", borderWidth: 1.2, pointRadius: 0 },
+            { label: "IT load (kW)", data: points.map(p => p.it_kw), borderColor: "#2471a3", borderWidth: 1.2, pointRadius: 0 },
+            { label: "Cooling inside R1 window", data: points.map((p, i) => inWindow[i] ? p.cooling_kw : null), borderColor: "#e67e22", borderWidth: 3, pointRadius: 0 },
+          ],
+        },
+        options: {
+          animation: false,
+          scales: { x: { ticks: { maxTicksLimit: 14, autoSkip: true } } },
+          plugins: { legend: { position: "bottom" } },
+        },
+      });
+    }
+
+    function renderFlags(flags) {
+      const table = el("flags");
+      const body = table.querySelector("tbody");
+      body.textContent = "";
+      flags.forEach(f => {
+        const tr = document.createElement("tr");
+        const rule = document.createElement("td");
+        rule.textContent = f.rule;
+        const range = document.createElement("td");
+        range.textContent = `${fmt(f.start)} to ${fmt(f.end)}`;
+        const ev = document.createElement("td");
+        ev.textContent = Object.entries(f.evidence)
+          .filter(([k]) => !k.startsWith("threshold") && k !== "multiplier")
+          .map(([k, v]) => `${k}: ${v}`).join("; ");
+        tr.append(rule, range, ev);
+        body.appendChild(tr);
+      });
+      table.hidden = false;
+      setStatus("flags-status", `${flags.length} flag(s). Each is a pattern to check, not a confirmed fault.`, false);
+    }
+
+    function renderCost(cost, tariff) {
+      if (!cost) {
+        setStatus("cost-status", "No R1 window flagged, so no cost estimate.", false);
+        return;
+      }
+      setStatus("cost-status", "Estimate under a stated baseline, not measured waste.", false);
+      const box = el("cost");
+      box.textContent = "";
+      [
+        ["Excess energy", `${cost.excess_kwh} kWh`],
+        ["Estimated cost", `${cost.estimated_cost} at ${tariff}/kWh`],
+        ["Total energy in window", `${cost.energy_kwh} kWh`],
+        ["Baseline ratio", `${cost.baseline_ratio} kW cooling per kW IT`],
+      ].forEach(([label, value]) => {
+        const d = document.createElement("div");
+        d.className = "metric";
+        const v = document.createElement("b");
+        v.textContent = value;
+        d.append(label, v);
+        box.appendChild(d);
+      });
+      box.hidden = false;
+      const note = el("cost-note");
+      note.textContent = `Formula: ${cost.formula}. Baseline from 4 to 11 Oct 2026. Total energy includes normal samples in the window.`;
+      note.hidden = false;
+    }
+
+    async function getJson(path) {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error(`${path} returned HTTP ${res.status}`);
+      return res.json();
+    }
+
+    async function main() {
       try {
-        const res = await fetch(path);
-        const body = await res.text();
-        if (!res.ok) {
-          out.className = "error";
-          out.textContent = `HTTP ${res.status}\n${body}`;
-          return false;
+        const [telemetry, analysis] = await Promise.all([
+          getJson("/api/telemetry"),
+          getJson("/api/analysis"),
+        ]);
+
+        const r1 = analysis.flags.find(f => f.rule === "R1") || null;
+
+        if (telemetry.points.length === 0) {
+          setStatus("chart-status", "No telemetry points returned.", true);
+        } else {
+          setStatus("chart-status", `${telemetry.points.length} readings at 15-minute intervals.`, false);
+          renderChart(telemetry.points, r1);
         }
-        out.textContent = JSON.stringify(JSON.parse(body), null, 2);
-        return true;
+
+        if (analysis.flags.length === 0) {
+          setStatus("flags-status", "No flags in this dataset.", false);
+        } else {
+          renderFlags(analysis.flags);
+        }
+
+        renderCost(analysis.cost, analysis.tariff_per_kwh);
       } catch (err) {
-        out.className = "error";
-        out.textContent = `Request failed: ${err.message}`;
-        return false;
+        setStatus("chart-status", `Could not load data: ${err.message}`, true);
+        setStatus("flags-status", "Analysis unavailable.", true);
+        setStatus("cost-status", "Cost unavailable.", true);
       }
     }
 
-    document.getElementById("run").addEventListener("click", async () => {
-      const status = document.getElementById("status");
-      status.textContent = "Running checks...";
-      const results = await Promise.all([
-        check("/api/health", "health"),
-        check("/api/firestore-test", "firestore"),
-        check("/api/gemini-test", "gemini"),
-      ]);
-      status.textContent = results.every(Boolean)
-        ? "All checks passed."
-        : "One or more checks failed. See the sections above.";
-    });
+    main();
   </script>
 </body>
 </html>
