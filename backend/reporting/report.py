@@ -2,7 +2,7 @@
 import json
 import re
 
-PROMPT_VERSION = "v2"
+PROMPT_VERSION = "v3"
 REQUIRED_KEYS = {"observed_pattern", "supporting_evidence", "hypotheses",
                  "recommended_checks", "limitations"}
 BANNED_PHRASES = ["confirmed fault", "confirmed failure", "will save", "guarantee",
@@ -11,6 +11,11 @@ SAFE_INTEGERS = set(range(0, 32)) | {2026}   # days, hours, minutes, year
 SAFE_DECIMALS = {0.25, 0.5}                  # interval hours, half-unit
 NUMBER_RE = re.compile(r"(?<![\d.])-?\d+(?:\.\d+)?")
 TIMESTAMP_RE = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?|\b\d{1,2}:\d{2}(?::\d{2})?\b")
+RULE_CAVEATS = {
+    "R1": "Window includes samples before the change; the cost covers only this detected window.",
+    "R3": "Single or short spikes can be sensor or load noise. Treat as weak evidence unless repeated.",
+    "R2": "Inlet temperature threshold is illustrative, not a facility standard.",
+}
 
 PROMPT = """You are writing an investigation note for a data-center facility operator.
 Rules:
@@ -23,6 +28,7 @@ Rules:
 - Do not use the words "confirmed fault", "will save", "guarantee", or "definitely".
 - Quote only numbers that appear in EVIDENCE. Do not calculate durations, totals, or percentages. Use the provided fields such as duration_minutes.
 - Each supporting_evidence item must use an evidence_id from the flags (F1, F2, ...), or COST for statements about cost, tariff, or baseline.
+- The limitations list must include every caveat given in the EVIDENCE, and must say which flags are weaker evidence.
 Return ONLY a JSON object with exactly these keys:
 observed_pattern (string),
 supporting_evidence (list of {"evidence_id": string, "statement": string}),
@@ -37,8 +43,27 @@ EVIDENCE:
 class ReportError(Exception):
     pass
 
+def caveat_for(rule, duration_minutes):
+    if rule == "R3" and duration_minutes > 30:
+        return "Sustained step rather than a single spike, so less likely to be one noisy sample."
+    return RULE_CAVEATS.get(rule, "")
 
 def build_evidence(sample_count, flags, ratio, cost, tariff):
+    flag_items = []
+    for i, f in enumerate(flags, start=1):
+        duration = int((f.end - f.start).total_seconds() // 60)
+        flag_items.append({
+            "evidence_id": f"F{i}",
+            "rule": f.rule,
+            "start": f.start.isoformat(),
+            "end": f.end.isoformat(),
+            "values": {
+                **f.evidence,
+                "duration_minutes": duration,
+                "caveat": caveat_for(f.rule, duration),
+            },
+        })
+
     return {
         "dataset": "synthetic_cooling.csv (SYNTHETIC)",
         "samples": sample_count,
@@ -46,19 +71,7 @@ def build_evidence(sample_count, flags, ratio, cost, tariff):
         "baseline_period": "2026-10-04 to 2026-10-11",
         "tariff_per_kwh": tariff,
         "cost": cost,
-        "flags": [
-            {
-                "evidence_id": f"F{i}",
-                "rule": f.rule,
-                "start": f.start.isoformat(),
-                "end": f.end.isoformat(),
-                "values": {
-                    **f.evidence,
-                    "duration_minutes": int((f.end - f.start).total_seconds() // 60),
-                },
-            }
-            for i, f in enumerate(flags, start=1)
-        ],
+        "flags": flag_items,
     }
 
 
