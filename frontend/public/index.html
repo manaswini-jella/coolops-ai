@@ -40,23 +40,23 @@
     .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #facc15; }
     .hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; align-items: center; }
     header h1 { font-size: 2.7rem; font-weight: 800; letter-spacing: -0.03em; margin: 0.8rem 0 0.4rem; line-height: 1.1; }
-    header .lead { font-size: 1.08rem; opacity: 0.92; margin: 0; max-width: 520px; }
+    header .lead { font-size: 1.08rem; opacity: 0.92; margin: 0; max-width: 540px; }
     .hero-art svg { width: 100%; height: auto; display: block; }
 
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: -3rem; position: relative; z-index: 2; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: -3rem; margin-bottom: 0.5rem; position: relative; z-index: 2; }
     .stat { background: var(--card); border-radius: 16px; padding: 1rem 1.2rem; box-shadow: var(--shadow); border: 1px solid var(--line); }
     .stat small { display: block; color: var(--muted); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
     .stat b { display: block; font-size: 1.45rem; font-weight: 800; margin-top: 2px; letter-spacing: -0.02em; }
     .stat b.teal { color: var(--teal); }
     .stat b.red { color: var(--red); }
 
-    main { padding: 1.75rem 0 3rem; }
-    .grid { display: grid; gap: 1.25rem; }
-    .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 1.3rem 1.4rem; box-shadow: var(--shadow); }
+    main { padding: 2.75rem 0 3rem; }
+    .grid { display: grid; gap: 1.5rem; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 1.3rem 1.4rem; box-shadow: var(--shadow); min-width: 0; }
     .card.ai { border: 1px solid transparent; background: linear-gradient(var(--card), var(--card)) padding-box, linear-gradient(135deg, #2dd4bf, #6366f1) border-box; }
     .card-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
     .card h2 { margin: 0; font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 0.5rem; }
-    .card .sub { margin: 0.35rem 0 0.9rem; color: var(--muted); font-size: 0.9rem; }
+    .card .sub { margin: 0.35rem 0 1.2rem; color: var(--muted); font-size: 0.9rem; }
     .tag { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, #14b8a6, #6366f1); padding: 3px 9px; border-radius: 999px; }
     .info-btn {
       width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); background: var(--chip);
@@ -65,28 +65,31 @@
     .info-btn:hover { border-color: var(--teal); }
     .muted { color: var(--muted); font-size: 0.9rem; }
     .error { color: var(--red); font-size: 0.9rem; }
+    .note { color: var(--muted); font-size: 0.85rem; margin: 1rem 0 0; }
 
-    /* Report */
+    /* AI report */
     .btn { background: linear-gradient(135deg, #14b8a6, #6366f1); color: #fff; border: 0; border-radius: 12px; padding: 0.8rem 1.4rem; font-size: 0.98rem; font-weight: 700; cursor: pointer; box-shadow: 0 8px 22px rgba(99,102,241,0.3); font-family: inherit; }
     .btn:hover { filter: brightness(1.07); }
     .btn:disabled { opacity: 0.6; cursor: wait; }
-    #report-status { margin-top: 0.8rem; font-size: 0.92rem; }
-    #report-body { margin-top: 1.1rem; }
-    #report-body h3 { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--teal-deep); margin: 1.2rem 0 0.35rem; }
-    #report-body p, #report-body li { font-size: 0.93rem; }
-    #report-body ul { padding-left: 1.15rem; margin: 0; }
-    #report-body li { margin-bottom: 0.35rem; }
+    #report-status { margin: 0.9rem 0 0; font-size: 0.92rem; }
+    #report-body { margin-top: 1.4rem; }
+    #report-body h3 { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--teal-deep); margin: 1.2rem 0 0.45rem; }
+    #report-body h3:first-child { margin-top: 0; }
+    #report-body p { margin: 0 0 0.6rem; font-size: 0.93rem; }
+    #report-body ul { padding-left: 1.15rem; margin: 0 0 0.6rem; }
+    #report-body li { margin-bottom: 0.35rem; font-size: 0.93rem; }
 
     /* Chart section */
     .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.25rem; margin-bottom: 0.9rem; }
     .controls select { font-family: inherit; font-size: 0.88rem; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
     .controls input[type=range] { flex: 1; min-width: 220px; accent-color: var(--teal); }
     #win-label { font-size: 0.82rem; color: var(--muted); margin: 0 0 0.6rem; }
-    .chart-block + .chart-block { margin-top: 1.2rem; }
-    .chart-block h3 { font-size: 0.9rem; margin: 0 0 0.3rem; font-weight: 700; }
+    .chart-block + .chart-block { margin-top: 1.4rem; }
+    .chart-block h3 { font-size: 0.9rem; margin: 0 0 0.5rem; font-weight: 700; }
+    .chart-block h3 span { font-weight: 500; color: var(--muted); font-size: 0.82rem; }
     .chart-wrap { position: relative; height: 300px; }
     .chart-wrap.short { height: 200px; }
-    .legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.7rem; font-size: 0.8rem; color: var(--muted); }
+    .legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.9rem; font-size: 0.8rem; color: var(--muted); }
     .chip { display: inline-flex; align-items: center; gap: 6px; }
     .chip i { width: 12px; height: 9px; border-radius: 3px; display: inline-block; }
 
@@ -105,10 +108,11 @@
     [data-theme="dark"] .rule-R3 { background: #10284a; }
 
     /* Cost */
-    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
     .metric { background: var(--chip); border-radius: 14px; padding: 0.85rem 1rem; border: 1px solid var(--line); }
     .metric span { display: block; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
     .metric b { display: block; font-size: 1.25rem; color: var(--teal-deep); margin-top: 2px; }
+    .cost-explain { color: var(--muted); font-size: 0.9rem; margin: 1rem 0 0; }
 
     /* Popup */
     .modal { position: fixed; inset: 0; background: rgba(2,6,23,0.55); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 50; }
@@ -120,6 +124,11 @@
     .modal-close { margin-top: 1rem; background: var(--chip); color: var(--teal-deep); border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 1rem; cursor: pointer; font-family: inherit; font-weight: 600; }
 
     footer { text-align: center; color: var(--muted); font-size: 0.78rem; padding: 0.5rem 0 2rem; }
+
+    @media (min-width: 861px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+      .grid > .span-2 { grid-column: 1 / -1; }
+    }
 
     @media (max-width: 860px) {
       .hero { grid-template-columns: 1fr; }
@@ -140,7 +149,7 @@
         <div>
           <span class="pill">SYNTHETIC DEMO DATA</span>
           <h1>Find cooling that rises when the workload doesn't.</h1>
-          <p class="lead">AI-assisted checks that show where to look, what it may cost, and what to check next.</p>
+          <p class="lead">CoolOps AI compares cooling energy with server workload, flags the periods worth checking, estimates the extra cost, and drafts a checklist for your team.</p>
         </div>
         <div class="hero-art" aria-hidden="true">
           <svg viewBox="0 0 420 260" xmlns="http://www.w3.org/2000/svg">
@@ -164,22 +173,21 @@
   <div class="wrap">
     <div class="stats">
       <div class="stat"><small>Readings</small><b id="stat-readings">—</b></div>
-      <div class="stat"><small>Flags</small><b id="stat-flags" class="teal">—</b></div>
-      <div class="stat"><small>Excess energy</small><b id="stat-excess">—</b></div>
-      <div class="stat"><small>Est. cost</small><b id="stat-cost" class="red">—</b></div>
+      <div class="stat"><small>Flags raised</small><b id="stat-flags" class="teal">—</b></div>
+      <div class="stat"><small>Excess cooling energy</small><b id="stat-excess">—</b></div>
+      <div class="stat"><small>Est. cost (demo tariff)</small><b id="stat-cost" class="red">—</b></div>
     </div>
   </div>
 
   <main class="wrap">
     <div class="grid">
 
-      <!-- AI report first: the differentiator -->
-      <section class="card ai">
+      <section class="card ai span-2">
         <div class="card-head">
-          <h2><span class="tag">AI</span> Investigation report</h2>
+          <h2><span class="tag">AI</span> What should our team check next?</h2>
           <button class="info-btn" data-info="ai" type="button" aria-label="More about the AI report">i</button>
         </div>
-        <p class="sub">Gemini turns the flags into a checklist for your team.</p>
+        <p class="sub">Gemini reads the flags and cost figures, then writes a checklist. Every number is checked against the evidence before it is saved.</p>
         <button class="btn" id="gen-report">Generate and save report</button>
         <p class="muted" id="report-status"></p>
         <div id="report-body" hidden>
@@ -191,12 +199,12 @@
         </div>
       </section>
 
-      <!-- One chart section, one slider controls both charts -->
-      <section class="card">
+      <section class="card span-2">
         <div class="card-head">
-          <h2>Cooling vs workload</h2>
+          <h2>Is cooling following the workload?</h2>
           <button class="info-btn" data-info="charts" type="button" aria-label="About these charts">i</button>
         </div>
+        <p class="sub">Pick a window and slide along the 14 days. Both charts move together.</p>
         <div class="controls">
           <select id="win-len" aria-label="Window length">
             <option value="96">1 day</option>
@@ -210,46 +218,49 @@
         <p class="muted" id="chart-status"></p>
 
         <div class="chart-block">
-          <h3>Cooling power and IT load (kW)</h3>
+          <h3>Cooling power and IT load</h3>
           <div class="chart-wrap"><canvas id="chart"></canvas></div>
         </div>
         <div class="chart-block">
-          <h3>Inlet air temperature (°C)</h3>
-          <div class="chart-wrap short"><canvas id="temp-chart"></canvas></div>
+          <h3>Inlet air temperature <span>(dashed line = 27 °C limit)</span></h3>
+          <div class="chart-wrap"><canvas id="temp-chart"></canvas></div>
         </div>
         <div class="legend">
-          <span class="chip"><i style="background:#f97316"></i>R1 cooling rose</span>
+          <span class="chip"><i style="background:#f97316"></i>R1 cooling rose, workload flat</span>
           <span class="chip"><i style="background:#eab308"></i>R2 air too warm</span>
-          <span class="chip"><i style="background:#3b82f6"></i>R3 sudden spike</span>
+          <span class="chip"><i style="background:#3b82f6"></i>R3 sudden cooling spike</span>
         </div>
       </section>
 
       <section class="card">
         <div class="card-head">
-          <h2>Flags</h2>
+          <h2>What should we look at first?</h2>
           <button class="info-btn" data-info="flags" type="button" aria-label="About the flags">i</button>
         </div>
+        <p class="sub">Each flag is a period worth checking. Click a row to view it on the charts.</p>
         <p class="muted" id="flags-status">Loading...</p>
         <table id="flags" hidden>
           <thead><tr><th>Check</th><th>When</th><th>Key evidence</th></tr></thead>
           <tbody></tbody>
         </table>
+        <p class="note">A flag is a reason to investigate, not proof of a fault or wasted energy.</p>
       </section>
 
       <section class="card">
         <div class="card-head">
-          <h2>Estimated cost</h2>
+          <h2>What could this cost?</h2>
           <button class="info-btn" data-info="cost" type="button" aria-label="How the cost is estimated">i</button>
         </div>
+        <p class="sub">Extra cooling energy during the R1 period, compared with normal operation.</p>
         <p class="muted" id="cost-status">Loading...</p>
         <div class="metrics" id="cost" hidden></div>
+        <p class="cost-explain">The tariff is a demo placeholder. Replace it with your local electricity rate for a real estimate.</p>
       </section>
 
     </div>
-    <footer>Synthetic data · Google Cloud · Firebase · Gemini</footer>
+    <footer>Synthetic demo data · Built with Google Cloud Run, Firestore, Firebase Hosting and Gemini</footer>
   </main>
 
-  <!-- Popup with the detail hidden behind each "i" button -->
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-box">
       <h3 id="modal-title"></h3>
@@ -266,7 +277,15 @@
     const RULE_NAMES = { R1: "Cooling rose, workload flat", R2: "Air too warm", R3: "Sudden cooling spike" };
     const SHADE = { R1: "rgba(249,115,22,0.32)", R2: "rgba(234,179,8,0.36)", R3: "rgba(59,130,246,0.30)" };
 
-    // Detail shown in the popup. Kept out of the page so the main view stays short.
+    // Plain labels with units for the evidence column.
+    const EVIDENCE_LABELS = {
+      duration_minutes: "Duration (min)",
+      cooling_change_pct: "Cooling change (%)",
+      it_change_pct: "IT load change (%)",
+      max_inlet_temp_c: "Peak inlet (°C)",
+      value_kw: "Peak cooling (kW)",
+    };
+
     const INFO = {
       ai: { title: "How the AI report works",
         body: `<p>The rules and cost are calculated first. Gemini then receives only those flags and figures and writes a checklist.</p>
@@ -282,9 +301,9 @@
         body: `<ul><li><b>R1</b> cooling rose at least 15% over 4 hours while IT load moved under 5%.</li>
                    <li><b>R2</b> inlet air stayed above 27 °C for 30+ minutes.</li>
                    <li><b>R3</b> cooling jumped well above its recent range.</li></ul>
-               <p>A flag is a reason to investigate, not proof of a fault or wasted energy. Click a row to zoom to it.</p>` },
+               <p>A flag is a reason to investigate, not proof of a fault or wasted energy. Click a row to view it.</p>` },
       cost: { title: "How the cost is estimated",
-        body: `<p>Excess energy is the cooling above what the normal cooling-to-workload ratio predicts, measured over the R1 window.</p>
+        body: `<p>Excess energy is the cooling above what the normal cooling-to-workload ratio predicts, measured over the R1 period.</p>
                <p>The baseline is 4 to 11 October 2026. The currency (${CURRENCY}) and tariff are demo assumptions. This is an estimate, not measured waste.</p>` },
     };
 
@@ -295,7 +314,6 @@
     function setStatus(id, text, isError) { const n = el(id); n.textContent = text; n.className = isError ? "error" : "muted"; }
     function fmt(ts) { return new Date(ts).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
 
-    // Theme: follow the saved choice, otherwise the system setting.
     function applyTheme(t) {
       document.documentElement.setAttribute("data-theme", t);
       el("theme-toggle").textContent = t === "dark" ? "Light mode" : "Dark mode";
@@ -311,7 +329,6 @@
       applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
     });
 
-    // Popups
     function openInfo(key) {
       el("modal-title").textContent = INFO[key].title;
       el("modal-body").innerHTML = INFO[key].body;
@@ -321,7 +338,6 @@
     el("modal-close").addEventListener("click", () => el("modal").classList.remove("open"));
     el("modal").addEventListener("click", e => { if (e.target.id === "modal") el("modal").classList.remove("open"); });
 
-    // Colours follow the current theme.
     function palette() {
       const dark = document.documentElement.getAttribute("data-theme") === "dark";
       return dark
@@ -396,7 +412,7 @@
           { label: "Cooling power (kW)", data: pts.map(x => x.cooling_kw), borderColor: p.cool, borderWidth: 2, pointRadius: 0, tension: 0.25 },
           { label: "IT load (kW)", data: pts.map(x => x.it_kw), borderColor: p.it, borderWidth: 2, pointRadius: 0, tension: 0.25 },
         ]},
-        options: { ...common, scales: scales("kW"), plugins: { legend: legendOpts(), flagShade: { bands } } },
+        options: { ...common, scales: scales("Power (kW)"), plugins: { legend: legendOpts(), flagShade: { bands } } },
       });
 
       const tempChart = new Chart(el("temp-chart"), {
@@ -405,13 +421,12 @@
         data: { labels, datasets: [
           { label: "Inlet air (°C)", data: pts.map(x => x.inlet_c), borderColor: p.temp, borderWidth: 2, pointRadius: 0, tension: 0.25 },
         ]},
-        options: { ...common, scales: scales("°C"), plugins: { legend: legendOpts(), flagShade: { bands }, limitLine: { value: INLET_LIMIT_C } } },
+        options: { ...common, scales: scales("Temperature (°C)"), plugins: { legend: legendOpts(), flagShade: { bands }, limitLine: { value: INLET_LIMIT_C } } },
       });
 
       return [powerChart, tempChart];
     }
 
-    // One slider drives both charts.
     function syncSlider() {
       const len = Math.min(Number(el("win-len").value), DATA.points.length);
       const s = el("win-start");
@@ -460,27 +475,27 @@
         range.textContent = `${fmt(f.start)} to ${fmt(f.end)}`;
 
         const ev = document.createElement("td");
-        const keep = ["duration_minutes", "cooling_change_pct", "it_change_pct", "max_inlet_temp_c", "value_kw"];
-        ev.textContent = keep
+        ev.textContent = Object.keys(EVIDENCE_LABELS)
           .filter(k => f.evidence[k] !== undefined)
-          .map(k => `${k.replace(/_/g, " ")}: ${f.evidence[k]}`).join(" · ");
+          .map(k => `${EVIDENCE_LABELS[k]}: ${f.evidence[k]}`)
+          .join(" · ");
 
         tr.append(check, range, ev);
         body.appendChild(tr);
       });
       el("flags").hidden = false;
-      setStatus("flags-status", `${flags.length} flag(s). Click a row to view it.`, false);
+      setStatus("flags-status", `${flags.length} flag(s). Click a row to view it on the charts.`, false);
     }
 
     function renderCost(cost, tariff) {
-      if (!cost) { setStatus("cost-status", "No R1 window flagged, so no cost estimate.", false); return; }
-      setStatus("cost-status", `${cost.estimated_cost} ${CURRENCY} estimated over the R1 window.`, false);
+      if (!cost) { setStatus("cost-status", "No R1 period flagged, so there is no cost estimate.", false); return; }
+      setStatus("cost-status", `About ${cost.estimated_cost} ${CURRENCY} of extra cooling cost over the R1 period.`, false);
       const box = el("cost");
       box.textContent = "";
       [
-        ["Excess energy", `${cost.excess_kwh} kWh`],
+        ["Excess cooling energy", `${cost.excess_kwh} kWh`],
         ["Estimated cost", `${cost.estimated_cost} ${CURRENCY}`],
-        ["Tariff", `${tariff} ${CURRENCY} / kWh`],
+        ["Tariff (demo)", `${tariff} ${CURRENCY} / kWh`],
       ].forEach(([label, value]) => {
         const d = document.createElement("div");
         d.className = "metric";
