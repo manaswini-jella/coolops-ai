@@ -6,62 +6,139 @@
   <title>CoolOps AI: Cooling Investigation Dashboard</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 1000px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
-    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
-    .badge { display: inline-block; background: #fff3cd; color: #664d03; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
-    .note { color: #555; font-size: 0.9rem; }
-    .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --brand: #0b6e8a;
+      --brand-soft: #e0f2f7;
+      --hot: #dc2626;
+      --cool: #2563eb;
+      --warn-bg: #fef3c7;
+      --warn-ink: #92400e;
+      --err: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    header {
+      background: linear-gradient(135deg, #0b4f63, #0b6e8a 60%, #14a3a0);
+      color: #fff;
+      padding: 2rem 1.5rem 2.5rem;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    header h1 { margin: 0 0 0.25rem; font-size: 1.8rem; letter-spacing: -0.02em; }
+    header p { margin: 0; opacity: 0.9; max-width: 680px; }
+    .badge {
+      display: inline-block; background: var(--warn-bg); color: var(--warn-ink);
+      padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.04em; margin-bottom: 0.75rem;
+    }
+    main { margin-top: -1.5rem; padding-bottom: 3rem; }
+    .grid { display: grid; gap: 1.25rem; }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+      padding: 1.25rem 1.4rem; box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.04);
+    }
+    .card h2 { margin: 0 0 0.25rem; font-size: 1.05rem; }
+    .card .sub { margin: 0 0 1rem; color: var(--muted); font-size: 0.875rem; }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+    .error { color: var(--err); font-size: 0.9rem; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; }
+    .metric { background: var(--brand-soft); border-radius: 10px; padding: 0.8rem 1rem; }
+    .metric span { display: block; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .metric b { display: block; font-size: 1.25rem; color: var(--brand); margin-top: 2px; }
+    .note { color: var(--muted); font-size: 0.85rem; margin-top: 0.75rem; }
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    th, td { text-align: left; padding: 6px; border-bottom: 1px solid #eee; vertical-align: top; }
-    .muted { color: #777; }
-    .error { color: #b00020; }
-    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; }
-    .metric b { display: block; font-size: 1.2rem; }
-    code { background: #f4f4f4; padding: 1px 4px; border-radius: 3px; }
+    th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 8px; border-bottom: 2px solid var(--line); }
+    td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .rule { display: inline-block; font-weight: 700; font-size: 0.8rem; padding: 2px 9px; border-radius: 6px; }
+    .rule-R1 { background: #fee2e2; color: var(--hot); }
+    .rule-R2 { background: #fef3c7; color: var(--warn-ink); }
+    .rule-R3 { background: #dbeafe; color: var(--cool); }
+    .chart-wrap { position: relative; height: 340px; }
+    .btn {
+      background: var(--brand); color: #fff; border: 0; border-radius: 8px;
+      padding: 0.65rem 1.2rem; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+      box-shadow: 0 2px 6px rgba(11,110,138,0.3);
+    }
+    .btn:hover { background: #095a72; }
+    .btn:disabled { opacity: 0.6; cursor: wait; }
+    #report-status { margin-top: 0.75rem; font-size: 0.9rem; }
+    #report-body { margin-top: 1.25rem; }
+    #report-body h3 {
+      font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--brand); margin: 1.25rem 0 0.4rem;
+    }
+    #report-body p, #report-body li { font-size: 0.95rem; }
+    #report-body ul { padding-left: 1.2rem; margin: 0; }
+    #report-body li { margin-bottom: 0.35rem; }
+    footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding: 2rem 0; }
   </style>
 </head>
 <body>
-  <h1>CoolOps AI</h1>
-  <p><span class="badge">SYNTHETIC DATA</span>
-     <span class="note">Flags show patterns to investigate. They are not proof of a fault or wasted energy.</span></p>
-
-  <div class="card">
-    <h2>Cooling power vs IT load</h2>
-    <p class="muted" id="chart-status">Loading telemetry...</p>
-    <canvas id="chart" height="110"></canvas>
-  </div>
-
-  <div class="card">
-    <h2>Flagged intervals</h2>
-    <p class="muted" id="flags-status">Loading analysis...</p>
-    <table id="flags" hidden>
-      <thead><tr><th>Rule</th><th>Time range</th><th>Evidence</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <div class="card">
-    <h2>Cost estimate (R1 window)</h2>
-    <p class="muted" id="cost-status">Loading...</p>
-    <div class="metrics" id="cost" hidden></div>
-    <p class="note" id="cost-note" hidden></p>
-  </div>
-  <div class="card">
-    <h2>Investigation report (Gemini)</h2>
-    <p class="note">Gemini receives only the flags and cost figures above. Its output is checked before anything is saved.</p>
-    <button id="gen-report">Generate and save report</button>
-    <p class="muted" id="report-status"></p>
-    <div id="report-body" hidden>
-      <h3>Observed pattern</h3><p id="r-observed"></p>
-      <h3>Supporting evidence</h3><ul id="r-evidence"></ul>
-      <h3>Possible explanations (hypotheses, not confirmed)</h3><ul id="r-hypotheses"></ul>
-      <h3>Recommended checks</h3><ul id="r-checks"></ul>
-      <h3>Limitations</h3><ul id="r-limits"></ul>
+  <header>
+    <div class="wrap">
+      <span class="badge">SYNTHETIC DATA</span>
+      <h1>CoolOps AI</h1>
+      <p>Find suspicious cooling-energy patterns before they become expensive. Flags are reasons to investigate, not proof of a fault or wasted energy.</p>
     </div>
-  </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+
+      <section class="card">
+        <h2>Cooling power vs IT load</h2>
+        <p class="sub">15-minute readings over 14 days. The orange line marks the R1 detected window.</p>
+        <p class="muted" id="chart-status">Loading telemetry...</p>
+        <div class="chart-wrap"><canvas id="chart"></canvas></div>
+      </section>
+
+      <section class="card">
+        <h2>Flagged intervals</h2>
+        <p class="sub">Each flag names the rule that triggered it and the measured evidence.</p>
+        <p class="muted" id="flags-status">Loading analysis...</p>
+        <table id="flags" hidden>
+          <thead><tr><th>Rule</th><th>Time range</th><th>Evidence</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>Cost estimate (R1 window)</h2>
+        <p class="sub">Measured against an explicit baseline, not measured waste.</p>
+        <p class="muted" id="cost-status">Loading...</p>
+        <div class="metrics" id="cost" hidden></div>
+        <p class="note" id="cost-note" hidden></p>
+      </section>
+
+      <section class="card">
+        <h2>Investigation report (Gemini)</h2>
+        <p class="sub">Gemini receives only the flags and cost figures above. Its output is checked before anything is saved.</p>
+        <button class="btn" id="gen-report">Generate and save report</button>
+        <p class="muted" id="report-status"></p>
+        <div id="report-body" hidden>
+          <h3>Observed pattern</h3><p id="r-observed"></p>
+          <h3>Supporting evidence</h3><ul id="r-evidence"></ul>
+          <h3>Possible explanations (hypotheses, not confirmed)</h3><ul id="r-hypotheses"></ul>
+          <h3>Recommended checks</h3><ul id="r-checks"></ul>
+          <h3>Limitations</h3><ul id="r-limits"></ul>
+        </div>
+      </section>
+
+    </div>
+    <footer>CoolOps AI prototype · synthetic data · Google Cloud, Firebase, Gemini</footer>
+  </main>
 
   <script>
-    // Every value is written with textContent, never innerHTML, so API data cannot inject markup.
     function el(id) { return document.getElementById(id); }
 
     function setStatus(id, text, isError) {
@@ -82,15 +159,21 @@
         data: {
           labels,
           datasets: [
-            { label: "Cooling power (kW)", data: points.map(p => p.cooling_kw), borderColor: "#c0392b", borderWidth: 1.2, pointRadius: 0 },
-            { label: "IT load (kW)", data: points.map(p => p.it_kw), borderColor: "#2471a3", borderWidth: 1.2, pointRadius: 0 },
-            { label: "Cooling inside R1 window", data: points.map((p, i) => inWindow[i] ? p.cooling_kw : null), borderColor: "#e67e22", borderWidth: 3, pointRadius: 0 },
+            { label: "Cooling power (kW)", data: points.map(p => p.cooling_kw), borderColor: "#dc2626", backgroundColor: "#dc2626", borderWidth: 1.4, pointRadius: 0, tension: 0.2 },
+            { label: "IT load (kW)", data: points.map(p => p.it_kw), borderColor: "#2563eb", backgroundColor: "#2563eb", borderWidth: 1.4, pointRadius: 0, tension: 0.2 },
+            { label: "Cooling inside R1 window", data: points.map((p, i) => inWindow[i] ? p.cooling_kw : null), borderColor: "#f97316", backgroundColor: "#f97316", borderWidth: 3.5, pointRadius: 0, tension: 0.2 },
           ],
         },
         options: {
+          responsive: true,
+          maintainAspectRatio: false,
           animation: false,
-          scales: { x: { ticks: { maxTicksLimit: 14, autoSkip: true } } },
-          plugins: { legend: { position: "bottom" } },
+          interaction: { mode: "index", intersect: false },
+          scales: {
+            x: { grid: { display: false }, ticks: { maxTicksLimit: 10, autoSkip: true, color: "#64748b" } },
+            y: { grid: { color: "#eef2f7" }, ticks: { color: "#64748b" }, title: { display: true, text: "kW", color: "#64748b" } },
+          },
+          plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8 } } },
         },
       });
     }
@@ -102,13 +185,16 @@
       flags.forEach(f => {
         const tr = document.createElement("tr");
         const rule = document.createElement("td");
-        rule.textContent = f.rule;
+        const pill = document.createElement("span");
+        pill.className = `rule rule-${f.rule}`;
+        pill.textContent = f.rule;
+        rule.appendChild(pill);
         const range = document.createElement("td");
         range.textContent = `${fmt(f.start)} to ${fmt(f.end)}`;
         const ev = document.createElement("td");
         ev.textContent = Object.entries(f.evidence)
           .filter(([k]) => !k.startsWith("threshold") && k !== "multiplier")
-          .map(([k, v]) => `${k}: ${v}`).join("; ");
+          .map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`).join(" · ");
         tr.append(rule, range, ev);
         body.appendChild(tr);
       });
@@ -121,20 +207,22 @@
         setStatus("cost-status", "No R1 window flagged, so no cost estimate.", false);
         return;
       }
-      setStatus("cost-status", "Estimate under a stated baseline, not measured waste.", false);
+      setStatus("cost-status", "Estimate under a stated baseline.", false);
       const box = el("cost");
       box.textContent = "";
       [
         ["Excess energy", `${cost.excess_kwh} kWh`],
         ["Estimated cost", `${cost.estimated_cost} at ${tariff}/kWh`],
         ["Total energy in window", `${cost.energy_kwh} kWh`],
-        ["Baseline ratio", `${cost.baseline_ratio} kW cooling per kW IT`],
+        ["Baseline ratio", `${cost.baseline_ratio} kW per kW IT`],
       ].forEach(([label, value]) => {
         const d = document.createElement("div");
         d.className = "metric";
+        const l = document.createElement("span");
+        l.textContent = label;
         const v = document.createElement("b");
         v.textContent = value;
-        d.append(label, v);
+        d.append(l, v);
         box.appendChild(d);
       });
       box.hidden = false;
@@ -155,7 +243,6 @@
           getJson("/api/telemetry"),
           getJson("/api/analysis"),
         ]);
-
         const r1 = analysis.flags.find(f => f.rule === "R1") || null;
 
         if (telemetry.points.length === 0) {
@@ -170,7 +257,6 @@
         } else {
           renderFlags(analysis.flags);
         }
-
         renderCost(analysis.cost, analysis.tariff_per_kwh);
       } catch (err) {
         setStatus("chart-status", `Could not load data: ${err.message}`, true);
