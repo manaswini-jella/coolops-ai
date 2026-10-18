@@ -29,7 +29,7 @@ R1_UPLIFT = 1.30           # cooling 30% higher, IT load unchanged
 
 R2_START = dt.datetime(2026, 10, 6, 13, 0)
 R2_END = dt.datetime(2026, 10, 6, 15, 30)
-R2_INLET_OFFSET_C = 5.0    # pushes inlet air above 27 C for the window
+R2_INLET_OFFSET_C = 7.0    # pushes inlet air above 27 C for the window
 
 R3_START = dt.datetime(2026, 10, 8, 15, 0)
 R3_END = dt.datetime(2026, 10, 8, 15, 45)

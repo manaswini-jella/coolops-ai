@@ -3,232 +3,500 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CoolOps AI: Cooling Investigation Dashboard</title>
+  <title>CoolOps AI: Cooling Investigation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg: #f5f7fb;
-      --card: #ffffff;
-      --ink: #0f172a;
-      --muted: #64748b;
-      --line: #e2e8f0;
-      --brand: #0b6e8a;
-      --brand-soft: #e0f2f7;
-      --hot: #dc2626;
-      --cool: #2563eb;
-      --warn-bg: #fef3c7;
-      --warn-ink: #92400e;
-      --err: #b91c1c;
+      --bg: #f4f7fb; --card: #ffffff; --ink: #0b1224; --muted: #5b6b82; --line: #e3e9f2;
+      --teal: #0d9488; --teal-deep: #0f5f6b; --blue: #2563eb; --red: #e11d48; --amber: #d97706;
+      --chip: #e6f7f5; --grid: #eef2f7; --hero1: #072f3a; --hero2: #0f5f6b; --hero3: #0d9488;
+      --shadow: 0 1px 2px rgba(11,18,36,0.04), 0 10px 30px rgba(11,18,36,0.05);
+    }
+    [data-theme="dark"] {
+      --bg: #0a1120; --card: #121b2e; --ink: #e6edf7; --muted: #94a3b8; --line: #1f2b42;
+      --teal: #2dd4bf; --teal-deep: #5eead4; --blue: #60a5fa; --red: #fb7185; --amber: #fbbf24;
+      --chip: #12302f; --grid: #1c2a42; --hero1: #03141a; --hero2: #0b3b44; --hero3: #0f766e;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.35);
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-      line-height: 1.5;
-    }
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; transition: background .25s, color .25s; }
+    .wrap { max-width: 1140px; margin: 0 auto; padding: 0 1.25rem; }
+
     header {
-      background: linear-gradient(135deg, #0b4f63, #0b6e8a 60%, #14a3a0);
-      color: #fff;
-      padding: 2rem 1.5rem 2.5rem;
+      background: radial-gradient(900px 360px at 85% -30%, #2dd4bf40, transparent 60%),
+                  linear-gradient(135deg, var(--hero1), var(--hero2) 55%, var(--hero3));
+      color: #fff; padding: 2rem 0 4.5rem;
     }
-    .wrap { max-width: 1100px; margin: 0 auto; }
-    header h1 { margin: 0 0 0.25rem; font-size: 1.8rem; letter-spacing: -0.02em; }
-    header p { margin: 0; opacity: 0.9; max-width: 680px; }
-    .badge {
-      display: inline-block; background: var(--warn-bg); color: var(--warn-ink);
-      padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700;
-      letter-spacing: 0.04em; margin-bottom: 0.75rem;
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .brand { font-weight: 800; font-size: 1.05rem; letter-spacing: -0.01em; }
+    .brand span { color: #5eead4; }
+    .theme-btn {
+      background: rgba(255,255,255,0.14); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 999px; padding: 6px 14px; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: 600;
     }
-    main { margin-top: -1.5rem; padding-bottom: 3rem; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25); padding: 3px 11px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; }
+    .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #facc15; }
+    .hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; align-items: center; }
+    header h1 { font-size: 2.7rem; font-weight: 800; letter-spacing: -0.03em; margin: 0.8rem 0 0.4rem; line-height: 1.1; }
+    header .lead { font-size: 1.08rem; opacity: 0.92; margin: 0; max-width: 520px; }
+    .hero-art svg { width: 100%; height: auto; display: block; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: -3rem; position: relative; z-index: 2; }
+    .stat { background: var(--card); border-radius: 16px; padding: 1rem 1.2rem; box-shadow: var(--shadow); border: 1px solid var(--line); }
+    .stat small { display: block; color: var(--muted); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat b { display: block; font-size: 1.45rem; font-weight: 800; margin-top: 2px; letter-spacing: -0.02em; }
+    .stat b.teal { color: var(--teal); }
+    .stat b.red { color: var(--red); }
+
+    main { padding: 1.75rem 0 3rem; }
     .grid { display: grid; gap: 1.25rem; }
-    .card {
-      background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-      padding: 1.25rem 1.4rem; box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.04);
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 1.3rem 1.4rem; box-shadow: var(--shadow); }
+    .card.ai { border: 1px solid transparent; background: linear-gradient(var(--card), var(--card)) padding-box, linear-gradient(135deg, #2dd4bf, #6366f1) border-box; }
+    .card-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .card h2 { margin: 0; font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 0.5rem; }
+    .card .sub { margin: 0.35rem 0 0.9rem; color: var(--muted); font-size: 0.9rem; }
+    .tag { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, #14b8a6, #6366f1); padding: 3px 9px; border-radius: 999px; }
+    .info-btn {
+      width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); background: var(--chip);
+      color: var(--teal-deep); font-weight: 800; font-size: 0.85rem; cursor: pointer; font-family: inherit; flex-shrink: 0;
     }
-    .card h2 { margin: 0 0 0.25rem; font-size: 1.05rem; }
-    .card .sub { margin: 0 0 1rem; color: var(--muted); font-size: 0.875rem; }
+    .info-btn:hover { border-color: var(--teal); }
     .muted { color: var(--muted); font-size: 0.9rem; }
-    .error { color: var(--err); font-size: 0.9rem; }
-    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; }
-    .metric { background: var(--brand-soft); border-radius: 10px; padding: 0.8rem 1rem; }
-    .metric span { display: block; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .metric b { display: block; font-size: 1.25rem; color: var(--brand); margin-top: 2px; }
-    .note { color: var(--muted); font-size: 0.85rem; margin-top: 0.75rem; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 8px; border-bottom: 2px solid var(--line); }
-    td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-    .rule { display: inline-block; font-weight: 700; font-size: 0.8rem; padding: 2px 9px; border-radius: 6px; }
-    .rule-R1 { background: #fee2e2; color: var(--hot); }
-    .rule-R2 { background: #fef3c7; color: var(--warn-ink); }
-    .rule-R3 { background: #dbeafe; color: var(--cool); }
-    .chart-wrap { position: relative; height: 340px; }
-    .btn {
-      background: var(--brand); color: #fff; border: 0; border-radius: 8px;
-      padding: 0.65rem 1.2rem; font-size: 0.95rem; font-weight: 600; cursor: pointer;
-      box-shadow: 0 2px 6px rgba(11,110,138,0.3);
-    }
-    .btn:hover { background: #095a72; }
+    .error { color: var(--red); font-size: 0.9rem; }
+
+    /* Report */
+    .btn { background: linear-gradient(135deg, #14b8a6, #6366f1); color: #fff; border: 0; border-radius: 12px; padding: 0.8rem 1.4rem; font-size: 0.98rem; font-weight: 700; cursor: pointer; box-shadow: 0 8px 22px rgba(99,102,241,0.3); font-family: inherit; }
+    .btn:hover { filter: brightness(1.07); }
     .btn:disabled { opacity: 0.6; cursor: wait; }
-    #report-status { margin-top: 0.75rem; font-size: 0.9rem; }
-    #report-body { margin-top: 1.25rem; }
-    #report-body h3 {
-      font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;
-      color: var(--brand); margin: 1.25rem 0 0.4rem;
-    }
-    #report-body p, #report-body li { font-size: 0.95rem; }
-    #report-body ul { padding-left: 1.2rem; margin: 0; }
+    #report-status { margin-top: 0.8rem; font-size: 0.92rem; }
+    #report-body { margin-top: 1.1rem; }
+    #report-body h3 { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--teal-deep); margin: 1.2rem 0 0.35rem; }
+    #report-body p, #report-body li { font-size: 0.93rem; }
+    #report-body ul { padding-left: 1.15rem; margin: 0; }
     #report-body li { margin-bottom: 0.35rem; }
-    footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding: 2rem 0; }
+
+    /* Chart section */
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.25rem; margin-bottom: 0.9rem; }
+    .controls select { font-family: inherit; font-size: 0.88rem; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+    .controls input[type=range] { flex: 1; min-width: 220px; accent-color: var(--teal); }
+    #win-label { font-size: 0.82rem; color: var(--muted); margin: 0 0 0.6rem; }
+    .chart-block + .chart-block { margin-top: 1.2rem; }
+    .chart-block h3 { font-size: 0.9rem; margin: 0 0 0.3rem; font-weight: 700; }
+    .chart-wrap { position: relative; height: 300px; }
+    .chart-wrap.short { height: 200px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.7rem; font-size: 0.8rem; color: var(--muted); }
+    .chip { display: inline-flex; align-items: center; gap: 6px; }
+    .chip i { width: 12px; height: 9px; border-radius: 3px; display: inline-block; }
+
+    /* Flags table */
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th { text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 8px; border-bottom: 2px solid var(--line); }
+    td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    tr.flag-row { cursor: pointer; }
+    tr.flag-row:hover td { background: var(--chip); }
+    .rule-code { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+    .rule-R1 { background: #ffe4e9; color: var(--red); }
+    .rule-R2 { background: #fef3c7; color: var(--amber); }
+    .rule-R3 { background: #dbeafe; color: var(--blue); }
+    [data-theme="dark"] .rule-R1 { background: #3b1020; }
+    [data-theme="dark"] .rule-R2 { background: #3a2a08; }
+    [data-theme="dark"] .rule-R3 { background: #10284a; }
+
+    /* Cost */
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; }
+    .metric { background: var(--chip); border-radius: 14px; padding: 0.85rem 1rem; border: 1px solid var(--line); }
+    .metric span { display: block; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+    .metric b { display: block; font-size: 1.25rem; color: var(--teal-deep); margin-top: 2px; }
+
+    /* Popup */
+    .modal { position: fixed; inset: 0; background: rgba(2,6,23,0.55); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 50; }
+    .modal.open { display: flex; }
+    .modal-box { background: var(--card); color: var(--ink); border-radius: 18px; max-width: 520px; width: 100%; padding: 1.5rem; box-shadow: 0 30px 80px rgba(0,0,0,0.4); border: 1px solid var(--line); }
+    .modal-box h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .modal-box p, .modal-box li { font-size: 0.92rem; color: var(--muted); }
+    .modal-box ul { padding-left: 1.1rem; }
+    .modal-close { margin-top: 1rem; background: var(--chip); color: var(--teal-deep); border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 1rem; cursor: pointer; font-family: inherit; font-weight: 600; }
+
+    footer { text-align: center; color: var(--muted); font-size: 0.78rem; padding: 0.5rem 0 2rem; }
+
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-art { display: none; }
+      .stats { grid-template-columns: repeat(2, 1fr); margin-top: -2rem; }
+      header h1 { font-size: 2.1rem; }
+    }
   </style>
 </head>
 <body>
   <header>
     <div class="wrap">
-      <span class="badge">SYNTHETIC DATA</span>
-      <h1>CoolOps AI</h1>
-      <p>Find suspicious cooling-energy patterns before they become expensive. Flags are reasons to investigate, not proof of a fault or wasted energy.</p>
+      <div class="topbar">
+        <div class="brand">CoolOps <span>AI</span></div>
+        <button class="theme-btn" id="theme-toggle" type="button">Dark mode</button>
+      </div>
+      <div class="hero">
+        <div>
+          <span class="pill">SYNTHETIC DEMO DATA</span>
+          <h1>Find cooling that rises when the workload doesn't.</h1>
+          <p class="lead">AI-assisted checks that show where to look, what it may cost, and what to check next.</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <svg viewBox="0 0 420 260" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
+              <linearGradient id="g2" x1="0" x2="1"><stop offset="0" stop-color="#fb7185"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
+            </defs>
+            <rect x="10" y="20" width="400" height="220" rx="22" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.25)"/>
+            <g stroke="rgba(255,255,255,0.15)"><line x1="40" y1="70" x2="390" y2="70"/><line x1="40" y1="120" x2="390" y2="120"/><line x1="40" y1="170" x2="390" y2="170"/><line x1="40" y1="210" x2="390" y2="210"/></g>
+            <path d="M40 160 C80 150, 110 165, 150 150 S 220 140, 260 150 S 330 160, 390 150" fill="none" stroke="url(#g1)" stroke-width="4" stroke-linecap="round"/>
+            <path d="M40 180 C80 90, 150 80, 260 88 S 330 110, 390 100" fill="none" stroke="url(#g2)" stroke-width="4" stroke-linecap="round"/>
+            <rect x="232" y="60" width="92" height="150" rx="10" fill="rgba(251,113,133,0.22)"/>
+            <circle cx="320" cy="58" r="14" fill="#fb7185"/>
+            <text x="320" y="63" text-anchor="middle" font-size="16" font-weight="800" fill="#fff" font-family="Inter, sans-serif">!</text>
+          </svg>
+        </div>
+      </div>
     </div>
   </header>
+
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><small>Readings</small><b id="stat-readings">—</b></div>
+      <div class="stat"><small>Flags</small><b id="stat-flags" class="teal">—</b></div>
+      <div class="stat"><small>Excess energy</small><b id="stat-excess">—</b></div>
+      <div class="stat"><small>Est. cost</small><b id="stat-cost" class="red">—</b></div>
+    </div>
+  </div>
 
   <main class="wrap">
     <div class="grid">
 
-      <section class="card">
-        <h2>Cooling power vs IT load</h2>
-        <p class="sub">15-minute readings over 14 days. The orange line marks the R1 detected window.</p>
-        <p class="muted" id="chart-status">Loading telemetry...</p>
-        <div class="chart-wrap"><canvas id="chart"></canvas></div>
-      </section>
-
-      <section class="card">
-        <h2>Flagged intervals</h2>
-        <p class="sub">Each flag names the rule that triggered it and the measured evidence.</p>
-        <p class="muted" id="flags-status">Loading analysis...</p>
-        <table id="flags" hidden>
-          <thead><tr><th>Rule</th><th>Time range</th><th>Evidence</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </section>
-
-      <section class="card">
-        <h2>Cost estimate (R1 window)</h2>
-        <p class="sub">Measured against an explicit baseline, not measured waste.</p>
-        <p class="muted" id="cost-status">Loading...</p>
-        <div class="metrics" id="cost" hidden></div>
-        <p class="note" id="cost-note" hidden></p>
-      </section>
-
-      <section class="card">
-        <h2>Investigation report (Gemini)</h2>
-        <p class="sub">Gemini receives only the flags and cost figures above. Its output is checked before anything is saved.</p>
+      <!-- AI report first: the differentiator -->
+      <section class="card ai">
+        <div class="card-head">
+          <h2><span class="tag">AI</span> Investigation report</h2>
+          <button class="info-btn" data-info="ai" type="button" aria-label="More about the AI report">i</button>
+        </div>
+        <p class="sub">Gemini turns the flags into a checklist for your team.</p>
         <button class="btn" id="gen-report">Generate and save report</button>
         <p class="muted" id="report-status"></p>
         <div id="report-body" hidden>
           <h3>Observed pattern</h3><p id="r-observed"></p>
           <h3>Supporting evidence</h3><ul id="r-evidence"></ul>
-          <h3>Possible explanations (hypotheses, not confirmed)</h3><ul id="r-hypotheses"></ul>
+          <h3>Possible explanations (not confirmed)</h3><ul id="r-hypotheses"></ul>
           <h3>Recommended checks</h3><ul id="r-checks"></ul>
           <h3>Limitations</h3><ul id="r-limits"></ul>
         </div>
       </section>
 
+      <!-- One chart section, one slider controls both charts -->
+      <section class="card">
+        <div class="card-head">
+          <h2>Cooling vs workload</h2>
+          <button class="info-btn" data-info="charts" type="button" aria-label="About these charts">i</button>
+        </div>
+        <div class="controls">
+          <select id="win-len" aria-label="Window length">
+            <option value="96">1 day</option>
+            <option value="192">2 days</option>
+            <option value="672">7 days</option>
+            <option value="1344" selected>All 14 days</option>
+          </select>
+          <input type="range" id="win-start" min="0" max="0" value="0" step="1" aria-label="Start time">
+        </div>
+        <p id="win-label" class="muted">Loading...</p>
+        <p class="muted" id="chart-status"></p>
+
+        <div class="chart-block">
+          <h3>Cooling power and IT load (kW)</h3>
+          <div class="chart-wrap"><canvas id="chart"></canvas></div>
+        </div>
+        <div class="chart-block">
+          <h3>Inlet air temperature (°C)</h3>
+          <div class="chart-wrap short"><canvas id="temp-chart"></canvas></div>
+        </div>
+        <div class="legend">
+          <span class="chip"><i style="background:#f97316"></i>R1 cooling rose</span>
+          <span class="chip"><i style="background:#eab308"></i>R2 air too warm</span>
+          <span class="chip"><i style="background:#3b82f6"></i>R3 sudden spike</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Flags</h2>
+          <button class="info-btn" data-info="flags" type="button" aria-label="About the flags">i</button>
+        </div>
+        <p class="muted" id="flags-status">Loading...</p>
+        <table id="flags" hidden>
+          <thead><tr><th>Check</th><th>When</th><th>Key evidence</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Estimated cost</h2>
+          <button class="info-btn" data-info="cost" type="button" aria-label="How the cost is estimated">i</button>
+        </div>
+        <p class="muted" id="cost-status">Loading...</p>
+        <div class="metrics" id="cost" hidden></div>
+      </section>
+
     </div>
-    <footer>CoolOps AI prototype · synthetic data · Google Cloud, Firebase, Gemini</footer>
+    <footer>Synthetic data · Google Cloud · Firebase · Gemini</footer>
   </main>
 
+  <!-- Popup with the detail hidden behind each "i" button -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+      <h3 id="modal-title"></h3>
+      <div id="modal-body"></div>
+      <button class="modal-close" id="modal-close" type="button">Close</button>
+    </div>
+  </div>
+
   <script>
+    // Demo assumptions. Replace with your real currency and tariff before any real use.
+    const CURRENCY = "USD";
+    const INLET_LIMIT_C = 27;
+
+    const RULE_NAMES = { R1: "Cooling rose, workload flat", R2: "Air too warm", R3: "Sudden cooling spike" };
+    const SHADE = { R1: "rgba(249,115,22,0.32)", R2: "rgba(234,179,8,0.36)", R3: "rgba(59,130,246,0.30)" };
+
+    // Detail shown in the popup. Kept out of the page so the main view stays short.
+    const INFO = {
+      ai: { title: "How the AI report works",
+        body: `<p>The rules and cost are calculated first. Gemini then receives only those flags and figures and writes a checklist.</p>
+               <ul><li>Every number in its answer must match the evidence.</li>
+                   <li>Hypotheses are marked as not confirmed.</li>
+                   <li>Output that fails the checks is rejected and nothing is saved.</li></ul>` },
+      charts: { title: "Reading the charts",
+        body: `<p>Readings come every 15 minutes. Use the window length and slider to move through time. Both charts share the same slider.</p>
+               <ul><li>Top: cooling power should follow IT load.</li>
+                   <li>Bottom: inlet air above the dashed 27 °C limit is a risk.</li>
+                   <li>Shaded bands mark flagged periods.</li></ul>` },
+      flags: { title: "What the checks mean",
+        body: `<ul><li><b>R1</b> cooling rose at least 15% over 4 hours while IT load moved under 5%.</li>
+                   <li><b>R2</b> inlet air stayed above 27 °C for 30+ minutes.</li>
+                   <li><b>R3</b> cooling jumped well above its recent range.</li></ul>
+               <p>A flag is a reason to investigate, not proof of a fault or wasted energy. Click a row to zoom to it.</p>` },
+      cost: { title: "How the cost is estimated",
+        body: `<p>Excess energy is the cooling above what the normal cooling-to-workload ratio predicts, measured over the R1 window.</p>
+               <p>The baseline is 4 to 11 October 2026. The currency (${CURRENCY}) and tariff are demo assumptions. This is an estimate, not measured waste.</p>` },
+    };
+
+    let DATA = { points: [], flags: [] };
+    let charts = [];
+
     function el(id) { return document.getElementById(id); }
+    function setStatus(id, text, isError) { const n = el(id); n.textContent = text; n.className = isError ? "error" : "muted"; }
+    function fmt(ts) { return new Date(ts).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
 
-    function setStatus(id, text, isError) {
-      const node = el(id);
-      node.textContent = text;
-      node.className = isError ? "error" : "muted";
+    // Theme: follow the saved choice, otherwise the system setting.
+    function applyTheme(t) {
+      document.documentElement.setAttribute("data-theme", t);
+      el("theme-toggle").textContent = t === "dark" ? "Light mode" : "Dark mode";
+      localStorage.setItem("coolops-theme", t);
+      if (charts.length) drawWindow();
+    }
+    (function initTheme() {
+      const saved = localStorage.getItem("coolops-theme");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      applyTheme(saved || (prefersDark ? "dark" : "light"));
+    })();
+    el("theme-toggle").addEventListener("click", () => {
+      applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+    });
+
+    // Popups
+    function openInfo(key) {
+      el("modal-title").textContent = INFO[key].title;
+      el("modal-body").innerHTML = INFO[key].body;
+      el("modal").classList.add("open");
+    }
+    document.querySelectorAll(".info-btn").forEach(b => b.addEventListener("click", () => openInfo(b.dataset.info)));
+    el("modal-close").addEventListener("click", () => el("modal").classList.remove("open"));
+    el("modal").addEventListener("click", e => { if (e.target.id === "modal") el("modal").classList.remove("open"); });
+
+    // Colours follow the current theme.
+    function palette() {
+      const dark = document.documentElement.getAttribute("data-theme") === "dark";
+      return dark
+        ? { ink: "#e6edf7", muted: "#94a3b8", grid: "#1c2a42", cool: "#fb7185", it: "#60a5fa", temp: "#2dd4bf", limit: "#f87171" }
+        : { ink: "#0b1224", muted: "#5b6b82", grid: "#eef2f7", cool: "#e11d48", it: "#2563eb", temp: "#0d9488", limit: "#b91c1c" };
     }
 
-    function fmt(ts) {
-      return new Date(ts).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    const flagShade = {
+      id: "flagShade",
+      beforeDatasetsDraw(chart, args, opts) {
+        const { ctx, chartArea, scales } = chart;
+        (opts.bands || []).forEach(b => {
+          const x1 = scales.x.getPixelForValue(b.from);
+          const x2 = scales.x.getPixelForValue(b.to);
+          ctx.save();
+          ctx.fillStyle = b.color;
+          ctx.fillRect(Math.min(x1, x2), chartArea.top, Math.abs(x2 - x1), chartArea.bottom - chartArea.top);
+          ctx.restore();
+        });
+      },
+    };
+
+    const limitLine = {
+      id: "limitLine",
+      afterDatasetsDraw(chart, args, opts) {
+        if (opts.value == null) return;
+        const { ctx, chartArea, scales } = chart;
+        const y = scales.y.getPixelForValue(opts.value);
+        ctx.save();
+        ctx.setLineDash([6, 4]);
+        ctx.strokeStyle = palette().limit;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, y);
+        ctx.lineTo(chartArea.right, y);
+        ctx.stroke();
+        ctx.restore();
+      },
+    };
+
+    function bandsFor(points, flags) {
+      return flags.map(f => {
+        const from = points.findIndex(p => p.t >= f.start);
+        let to = -1;
+        points.forEach((p, i) => { if (p.t < f.end) to = i; });
+        return { from, to, color: SHADE[f.rule] || "rgba(148,163,184,0.3)" };
+      }).filter(b => b.from >= 0 && b.to >= b.from);
     }
 
-    function renderChart(points, r1) {
-      const labels = points.map(p => fmt(p.t));
-      const inWindow = points.map(p => r1 && p.t >= r1.start && p.t < r1.end);
-      new Chart(el("chart"), {
+    function scales(yTitle) {
+      const p = palette();
+      return {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 8, autoSkip: true, color: p.muted } },
+        y: { grid: { color: p.grid }, ticks: { color: p.muted }, title: { display: true, text: yTitle, color: p.muted } },
+      };
+    }
+
+    function legendOpts() {
+      return { position: "top", align: "end", labels: { usePointStyle: true, boxWidth: 8, color: palette().ink } };
+    }
+
+    function renderCharts(pts, flags) {
+      const p = palette();
+      const bands = bandsFor(pts, flags);
+      const common = { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: "index", intersect: false } };
+      const labels = pts.map(x => fmt(x.t));
+
+      const powerChart = new Chart(el("chart"), {
         type: "line",
-        data: {
-          labels,
-          datasets: [
-            { label: "Cooling power (kW)", data: points.map(p => p.cooling_kw), borderColor: "#dc2626", backgroundColor: "#dc2626", borderWidth: 1.4, pointRadius: 0, tension: 0.2 },
-            { label: "IT load (kW)", data: points.map(p => p.it_kw), borderColor: "#2563eb", backgroundColor: "#2563eb", borderWidth: 1.4, pointRadius: 0, tension: 0.2 },
-            { label: "Cooling inside R1 window", data: points.map((p, i) => inWindow[i] ? p.cooling_kw : null), borderColor: "#f97316", backgroundColor: "#f97316", borderWidth: 3.5, pointRadius: 0, tension: 0.2 },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: false,
-          interaction: { mode: "index", intersect: false },
-          scales: {
-            x: { grid: { display: false }, ticks: { maxTicksLimit: 10, autoSkip: true, color: "#64748b" } },
-            y: { grid: { color: "#eef2f7" }, ticks: { color: "#64748b" }, title: { display: true, text: "kW", color: "#64748b" } },
-          },
-          plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8 } } },
-        },
+        plugins: [flagShade],
+        data: { labels, datasets: [
+          { label: "Cooling power (kW)", data: pts.map(x => x.cooling_kw), borderColor: p.cool, borderWidth: 2, pointRadius: 0, tension: 0.25 },
+          { label: "IT load (kW)", data: pts.map(x => x.it_kw), borderColor: p.it, borderWidth: 2, pointRadius: 0, tension: 0.25 },
+        ]},
+        options: { ...common, scales: scales("kW"), plugins: { legend: legendOpts(), flagShade: { bands } } },
       });
+
+      const tempChart = new Chart(el("temp-chart"), {
+        type: "line",
+        plugins: [flagShade, limitLine],
+        data: { labels, datasets: [
+          { label: "Inlet air (°C)", data: pts.map(x => x.inlet_c), borderColor: p.temp, borderWidth: 2, pointRadius: 0, tension: 0.25 },
+        ]},
+        options: { ...common, scales: scales("°C"), plugins: { legend: legendOpts(), flagShade: { bands }, limitLine: { value: INLET_LIMIT_C } } },
+      });
+
+      return [powerChart, tempChart];
+    }
+
+    // One slider drives both charts.
+    function syncSlider() {
+      const len = Math.min(Number(el("win-len").value), DATA.points.length);
+      const s = el("win-start");
+      s.max = Math.max(0, DATA.points.length - len);
+      if (Number(s.value) > Number(s.max)) s.value = s.max;
+      return len;
+    }
+
+    function drawWindow() {
+      if (!DATA.points.length) return;
+      const len = syncSlider();
+      const start = Number(el("win-start").value);
+      const pts = DATA.points.slice(start, start + len);
+      const from = pts[0].t, to = pts[pts.length - 1].t;
+      const flags = DATA.flags.filter(f => f.end > from && f.start <= to);
+      el("win-label").textContent = `${fmt(from)} to ${fmt(to)} · ${flags.length} flag(s) in view`;
+      charts.forEach(c => c.destroy());
+      charts = renderCharts(pts, flags);
+    }
+
+    function focusFlag(f) {
+      const idx = DATA.points.findIndex(p => p.t >= f.start);
+      el("win-len").value = "96";
+      const len = syncSlider();
+      el("win-start").value = Math.min(Math.max(0, idx - 24), DATA.points.length - len);
+      drawWindow();
+      el("win-label").scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     function renderFlags(flags) {
-      const table = el("flags");
-      const body = table.querySelector("tbody");
+      const body = el("flags").querySelector("tbody");
       body.textContent = "";
       flags.forEach(f => {
         const tr = document.createElement("tr");
-        const rule = document.createElement("td");
-        const pill = document.createElement("span");
-        pill.className = `rule rule-${f.rule}`;
-        pill.textContent = f.rule;
-        rule.appendChild(pill);
+        tr.className = "flag-row";
+        tr.title = "Click to view this period";
+        tr.addEventListener("click", () => focusFlag(f));
+
+        const check = document.createElement("td");
+        const code = document.createElement("span");
+        code.className = `rule-code rule-${f.rule}`;
+        code.textContent = f.rule;
+        check.append(code, document.createTextNode(" " + (RULE_NAMES[f.rule] || "")));
+
         const range = document.createElement("td");
         range.textContent = `${fmt(f.start)} to ${fmt(f.end)}`;
+
         const ev = document.createElement("td");
-        ev.textContent = Object.entries(f.evidence)
-          .filter(([k]) => !k.startsWith("threshold") && k !== "multiplier")
-          .map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`).join(" · ");
-        tr.append(rule, range, ev);
+        const keep = ["duration_minutes", "cooling_change_pct", "it_change_pct", "max_inlet_temp_c", "value_kw"];
+        ev.textContent = keep
+          .filter(k => f.evidence[k] !== undefined)
+          .map(k => `${k.replace(/_/g, " ")}: ${f.evidence[k]}`).join(" · ");
+
+        tr.append(check, range, ev);
         body.appendChild(tr);
       });
-      table.hidden = false;
-      setStatus("flags-status", `${flags.length} flag(s). Each is a pattern to check, not a confirmed fault.`, false);
+      el("flags").hidden = false;
+      setStatus("flags-status", `${flags.length} flag(s). Click a row to view it.`, false);
     }
 
     function renderCost(cost, tariff) {
-      if (!cost) {
-        setStatus("cost-status", "No R1 window flagged, so no cost estimate.", false);
-        return;
-      }
-      setStatus("cost-status", "Estimate under a stated baseline.", false);
+      if (!cost) { setStatus("cost-status", "No R1 window flagged, so no cost estimate.", false); return; }
+      setStatus("cost-status", `${cost.estimated_cost} ${CURRENCY} estimated over the R1 window.`, false);
       const box = el("cost");
       box.textContent = "";
       [
         ["Excess energy", `${cost.excess_kwh} kWh`],
-        ["Estimated cost", `${cost.estimated_cost} at ${tariff}/kWh`],
-        ["Total energy in window", `${cost.energy_kwh} kWh`],
-        ["Baseline ratio", `${cost.baseline_ratio} kW per kW IT`],
+        ["Estimated cost", `${cost.estimated_cost} ${CURRENCY}`],
+        ["Tariff", `${tariff} ${CURRENCY} / kWh`],
       ].forEach(([label, value]) => {
         const d = document.createElement("div");
         d.className = "metric";
-        const l = document.createElement("span");
-        l.textContent = label;
-        const v = document.createElement("b");
-        v.textContent = value;
+        const l = document.createElement("span"); l.textContent = label;
+        const v = document.createElement("b"); v.textContent = value;
         d.append(l, v);
         box.appendChild(d);
       });
       box.hidden = false;
-      const note = el("cost-note");
-      note.textContent = `Formula: ${cost.formula}. Baseline from 4 to 11 Oct 2026. Total energy includes normal samples in the window.`;
-      note.hidden = false;
+    }
+
+    function renderStats(telemetry, analysis) {
+      el("stat-readings").textContent = telemetry.points.length.toLocaleString();
+      el("stat-flags").textContent = analysis.flags.length;
+      el("stat-excess").textContent = analysis.cost ? `${analysis.cost.excess_kwh} kWh` : "None";
+      el("stat-cost").textContent = analysis.cost ? `${analysis.cost.estimated_cost} ${CURRENCY}` : "None";
     }
 
     async function getJson(path) {
@@ -239,29 +507,28 @@
 
     async function main() {
       try {
-        const [telemetry, analysis] = await Promise.all([
-          getJson("/api/telemetry"),
-          getJson("/api/analysis"),
-        ]);
-        const r1 = analysis.flags.find(f => f.rule === "R1") || null;
+        const [telemetry, analysis] = await Promise.all([getJson("/api/telemetry"), getJson("/api/analysis")]);
+        renderStats(telemetry, analysis);
 
-        if (telemetry.points.length === 0) {
+        if (telemetry.points.length) {
+          DATA = { points: telemetry.points, flags: analysis.flags };
+          el("win-len").addEventListener("change", () => { el("win-start").value = 0; drawWindow(); });
+          el("win-start").addEventListener("input", drawWindow);
+          drawWindow();
+          setStatus("chart-status", "", false);
+        } else {
           setStatus("chart-status", "No telemetry points returned.", true);
-        } else {
-          setStatus("chart-status", `${telemetry.points.length} readings at 15-minute intervals.`, false);
-          renderChart(telemetry.points, r1);
         }
 
-        if (analysis.flags.length === 0) {
-          setStatus("flags-status", "No flags in this dataset.", false);
-        } else {
-          renderFlags(analysis.flags);
-        }
+        if (analysis.flags.length) renderFlags(analysis.flags);
+        else setStatus("flags-status", "No flags in this dataset.", false);
+
         renderCost(analysis.cost, analysis.tariff_per_kwh);
       } catch (err) {
         setStatus("chart-status", `Could not load data: ${err.message}`, true);
         setStatus("flags-status", "Analysis unavailable.", true);
         setStatus("cost-status", "Cost unavailable.", true);
+        el("win-label").textContent = "Window unavailable.";
       }
     }
 
