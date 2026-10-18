@@ -46,6 +46,19 @@
     <div class="metrics" id="cost" hidden></div>
     <p class="note" id="cost-note" hidden></p>
   </div>
+  <div class="card">
+    <h2>Investigation report (Gemini)</h2>
+    <p class="note">Gemini receives only the flags and cost figures above. Its output is checked before anything is saved.</p>
+    <button id="gen-report">Generate and save report</button>
+    <p class="muted" id="report-status"></p>
+    <div id="report-body" hidden>
+      <h3>Observed pattern</h3><p id="r-observed"></p>
+      <h3>Supporting evidence</h3><ul id="r-evidence"></ul>
+      <h3>Possible explanations (hypotheses, not confirmed)</h3><ul id="r-hypotheses"></ul>
+      <h3>Recommended checks</h3><ul id="r-checks"></ul>
+      <h3>Limitations</h3><ul id="r-limits"></ul>
+    </div>
+  </div>
 
   <script>
     // Every value is written with textContent, never innerHTML, so API data cannot inject markup.
@@ -168,5 +181,6 @@
 
     main();
   </script>
+  <script src="/report.js"></script>
 </body>
 </html>
